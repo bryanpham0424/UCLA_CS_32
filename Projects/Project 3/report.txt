@@ -1,0 +1,454 @@
+CS32 Project #3 Report
+
+///////////////////////////////////////////////////StudentWorld.H/////////////////////////////////////////////////////////
+
+virtual ~StudentWorld();
+Destructor for the StudentWorld object. Marked virtual for because of inheritance.
+
+virtual int init();
+Function that initializes the StudentWorld object and it's private member variables.
+This function creates the dirt, pits, and Socrates himself.
+
+virtual int move();
+Function that asks every Actor object within the std::vector private member variable to do something each tick.
+Function utilizes a loop and iterates through the vector, asking each object to do something, and checking whether
+or not Socrates has either died or completed the level. Function also creates and adds to the world chance goodies
+and chance fungus.
+
+virtual void cleanUp();
+Cleanup funciton simply iterates through the vector and deletes each of its dynamically allocated objects.
+
+std::string formatScore(int score);
+Helper function that helped format the "score" parameter within the game display text. The format would take in an 
+int (ex. 158) and return it as a string in the format of 000158 (also placed negatives in the front)
+
+
+std::string formatText(int score, int lvl, int lives, int health, int sprays, int flames); 
+Formats all of the player's statistics at the top of the screen in the appropriate format. Used concatenation of strings.
+Returns a string of the stats in the correct format.
+
+void setDisplayText();
+Simply calls the formatText function from above and passes the returned string into setGameStatText()
+
+  //helper functions
+void socratesCoords(double& x, double& y);
+Function takes in 2 doubles as parameters, and sets them equal to the Player's current x-coordinate and 
+current y-coordinate.
+
+void deleteDeadActors();
+After each iteration of the move() function, move() calls this function to delete all of the dead Actors.
+Dead Actors are declared dead when their status parameter is set to false. Iterates using an iterator object.
+
+bool damagedOrNot(Actor* check, int dmgAmount);
+Function returns a boolean depending on whether or not Socrates's flame/spray overlaps with an object that is damageable.
+If the object is overlapping and damageable, another if statement checks whether or not the object that was overlapped
+is a Bacterium. Then another if statement further specifies what kind of Bacterium it was and plays a corresponding sound 
+to it being hurt. Also checks whether is should be set to dead after it kills the bact and plays its death sound.
+
+bool bacteriumOverlap(Actor* check, int dmgAmount);
+Simply checks if the bacterium overlaps with the player. If it does, reduces his health by the specified amount
+and if his hp is below 0 afterwards, sets him to dead. Then returns true. Returns false otherwise.
+
+bool bacteriumFoodOverlap(Actor* check);
+Simply checks is bacterium overlaps with food. Returns true is yes, false if no.
+
+bool bacteriumCanMove(Actor* check);
+Takes in the bacterium object and checks whether or not it can move 3 pixels forward without being blocked by dirt or
+go out of bounds. True if yes, false if no.
+
+bool EColiMove(Actor* check, double& xfuture, double& yfuture);
+Checks if the EColi can move 2 pixels forwards. True if yes, false if no.
+
+bool findClosestBact(Actor* check, Direction& angle);
+Function creates a local vector and pushes in all Food Actors from the world into it. Then it calculates the distance
+between the Actor* paramter and the food object and sets that as the closest object. If the vector is empty, there are no
+foods in the vacinity of the Actor*. If it's not empty, it finds the shortest distance among all of them.
+Then it returns the angle between Actor* and the closest Food. Sets direction in that direction, moves Actor* in 
+that direction. copies the direction into the angle param.
+
+bool goodiePickup(Actor* check);
+Checks whether or not the player has overlapped with a goodie object by iterating through all of the objects in the 
+current game world. Each goodie has a "code" tied to it and allows it to be distinguished. Picking up any goodie rewards
+the player with points and the bonuses that come with it (aside from Fungus)
+
+bool ifMoveOverlap(double x1, double y1, double x2, double y2);
+Checks the Euclidean distance for movement overlap
+
+bool ifObjOverlap(double x1, double y1, double x2, double y2);
+Checks the Euclidean distance for object overlap
+
+int getVecSize() const;
+returns size of the private member vector
+    
+void pushback4me(Actor* pass);
+Adds a new Actor8 into the private vector
+
+int getPit() const;
+Returns amount of pits
+
+int getBact() const;
+Returns amount of bacteria
+   
+void setPit(int amount);
+Sets the value of pitcount
+
+void setBactCount(int amount);
+Sets the value of bacteriumCount
+
+void incBact();
+bacteriumCount++
+
+void decBact();
+bacteriumCount--
+
+void incPit();
+pitCount++
+
+void decPit();
+pitCount--
+
+////////////////////////////////////////////////ACTOR.H////////////////////////////////////////////////
+
+
+class Actor : public GraphObject {
+public:
+	Actor(StudentWorld* here, int imageID, double startX, double startY, Direction dir, int depth, bool stat, bool dmg, int hp);
+	virtual ~Actor();
+	//pure virtual functions
+
+	virtual void doSomething() = 0;
+This function is pure virtual because every class that inherits from it has this function.
+
+	//other functions
+	void setHealth(int amount);
+Sets the member variable to the amount parameter
+
+	void reduceHp(int amount);
+Reduces the health member variable by the specified amount.
+
+	int getHp() const;
+Returns the health member variable.
+
+	void newCoords(int dist, Direction dir);
+Moves the actor in the direction that you want to move it. The function calls the moveTo() method given to us.
+Sorry, I thought moveAngle was too complicated.
+
+	virtual int goodieType() const;
+Returns false for anything that is not a goodie. If it is a goodie, it will return a specific number to differentiate 
+which goodie it is.
+
+	virtual int typeBact() const;
+Returns false for anything that is not a bacterium. If it is a bacterium, it will return a specific number to differentiate 
+which goodie it is.
+
+	virtual bool hasInvent() const;
+Returns false for everything except pit because pit is the only object that has an inventory.
+
+	virtual bool isDirt() const;
+Returns false for everything except Dirt for obvious reasons.
+
+	virtual bool isBacterium() const;
+Returns false for everything else except Bacterium objects.
+
+	virtual bool isSocrates() const;
+Returns false for everything else except Socrates.
+
+	virtual bool isGoodie() const;
+Returns false for everything else except goodie objects.
+
+	virtual bool isFood() const;
+Returns false for everything else except food objects for obvious reasons.
+
+	virtual void takeDmg(int value);
+Simply calls the reduceHp function, unless this function is called by a Bacterium object, then in which case it is redefined
+in the Bacterium class. (I realized after implementing this function inside a few doSomething() methods that I could've 
+just labeled reduceHp as virtual and redefined it instead but oh well.)
+	//Accessor
+
+	bool getStatus() const;
+Returns the status member variable.
+
+	void isNowDead();
+Changes the status variable from true to false, signifying that an object is dead.
+
+	bool damageable() const;
+Returns true for an object that is damageable, otherwise the opposite.
+
+	virtual bool hasHitPoints() const; //Excluding Socrates
+True if an object has hitpoints.
+
+	StudentWorld* getWorld();
+returns a point to the world that the object is in.
+
+private:
+	bool status;
+	int hitpoints;
+	bool isDamageable;
+	StudentWorld* currWorld;
+};
+
+class Socrates : public Actor {
+public:
+	Socrates(StudentWorld* here, int posAngle = 180, int x = 0, int y = VIEW_HEIGHT/2);
+	~Socrates();
+
+	virtual void doSomething();
+Takes in a user input based on the key they press in REAL TIME. Each key press defines a different action
+that the player can make Socrates do. The space key allows Socrates to fire his sprays as long as he has sprays
+. The enter key does the same, but for flame. Socrates also cheks whter or not he is currently alive, in which if
+he isn't, the function returns.
+
+	virtual bool isSocrates() const;
+Returns true, redfeined virtual method.
+
+	void incOrDecFlame(int amount);
+Adds the specified amount to the flame member variable.
+
+	void incOrDecSpray(int amount);
+Adds the specified amount to the spray member variable.
+
+	int getFlame() const;
+Returns flame count
+	int getSpray() const;
+returns spray count
+
+private:
+	int sprayCharge;
+	int flameCharge;
+	int positionalAngle;
+	bool hasSprayed = false;
+};
+
+class Dirt : public Actor { // it's just dirt. Lmao
+public:
+	Dirt(StudentWorld* here, int x, int y);
+	~Dirt();
+
+	virtual void doSomething();
+Does nothing. Literally. Does nothing. Come on
+	virtual bool isDirt() const;
+Returns true, redefined virtual method
+};
+
+class ActivatingObject : public Actor { //Abstract Class
+public:
+	ActivatingObject(StudentWorld* here, int travdist, int imageID, double startX, double startY, Direction dir, int depth, bool status, bool dmg);
+	~ActivatingObject();
+
+	virtual void doSomething() = 0;
+Marked pure virtual because the class is a abstract class
+
+	void reduceTravDist(int amount);
+Changes the travelDist m_v based on the amount
+	int getTravDist() const;
+Returns m_v
+
+private:
+	int travelDist;
+};
+
+class Food : public ActivatingObject {
+public:
+	Food(StudentWorld*here, int x, int y);
+	~Food();
+	virtual bool isFood() const;
+Returns true.
+	virtual void doSomething();
+Does nothing
+};
+
+
+class Flame : public ActivatingObject {
+public:
+	Flame(StudentWorld* here, int x, int y, Direction dir);
+	~Flame();
+	virtual void doSomething();
+Checks it's current position for overlaps with damageable objects.
+};
+
+class DisinfectantSpray : public ActivatingObject {
+public:
+	DisinfectantSpray(StudentWorld* here, int x, int y, Direction dir);
+	~DisinfectantSpray();
+	virtual void doSomething();
+Checks it's current position for overlaps with damageable objects.
+};
+
+class Goodie : public ActivatingObject { // Abstract Class
+public:
+	Goodie(StudentWorld* here, int life, int imageID, int x, int y, Direction dir, int depth, bool status, bool dmg);
+	~Goodie();
+	bool lifetimeOver();
+Returns true when an object's lifetime m_v is = 0
+
+	void reduceLifetime(int amount);
+Reduces the lifetime m_v by the specified amount.
+
+	virtual bool isGoodie() const; // all goodies return true
+All goodies return true.
+	virtual int goodieType() const; //returns 1 for restore, 2 for flame, 3 for extra, 4 for fungus
+
+	virtual void doSomething() = 0;
+Abstract class, this does nothing
+private:
+	int lifetime;
+};
+
+class RestoreHealthGoodie : public Goodie {
+public:
+	RestoreHealthGoodie(StudentWorld* here, int life, int x, int y);
+	~RestoreHealthGoodie();
+	virtual int goodieType() const;
+Returns 1.
+	virtual void doSomething(); 
+Checks if Socrates picks them up and reduces lifetime every tick. Grants 100 hp ti the player
+};
+
+class FlamethrowerGoodie : public Goodie {
+public:
+	FlamethrowerGoodie(StudentWorld* here, int life, int x, int y);
+	~FlamethrowerGoodie();
+
+	virtual int goodieType() const;
+Returns 2.
+	virtual void doSomething(); 
+Checks if Socrates picks them up and reduces lifetime every tick. Grants 5 more flame charges to the player
+};
+
+class ExtraLifeGoodie : public Goodie {
+public:
+	ExtraLifeGoodie(StudentWorld* here, int life, int x, int y);
+	~ExtraLifeGoodie();
+	virtual int goodieType() const;
+Returns 3.
+	virtual void doSomething();
+Checks if Socrates picks them up and reduces lifetime every tick. Grants an extra life to the player
+};
+
+class Fungus : public Goodie {
+public:
+	Fungus(StudentWorld* here, int life, int x, int y);
+	~Fungus();
+	virtual int goodieType() const;
+Returns 4.
+	virtual void doSomething();
+Checks if Socrates picks them up and reduces lifetime every tick. Damages the player instead
+};
+
+class Pit : public Actor {
+public:
+	Pit(StudentWorld* here, double x, double y);
+	~Pit();
+
+	virtual void doSomething();
+Spawns in either Regular Salmonella, Aggressive Salmonella, or E.Coli enemies. Each pit has 5,3, and 2 respectively.
+It can only spawn in an enemy of a certain type if the pit's inventory for that enemy is above 0.
+
+	virtual bool hasInvent() const;
+Returns true.
+
+	bool hasEmittedAll();
+Checks if all m_v values are equal to 0.
+
+	void decReg();
+	void decAgg();
+	void decEColi();
+All 3 functions above subtract 1 from the count of the enemy
+
+	int getReg() const;
+	int getAgg() const;
+	int getEColi() const;
+All 3 functions above return the m_v
+
+private:
+	int RegSalCount;
+	int AggCount;
+	int EColiCount;
+};
+
+class Bacterium : public Actor { //Abstract class
+public:
+	Bacterium(StudentWorld* here, int hp, int movePlan, int imageID, double startX, double startY, Direction dir, int depth, bool stat, bool dmg);
+	~Bacterium();
+	virtual void doSomething() = 0;
+
+
+	virtual bool isBacterium() const;
+	virtual int typeBact() const; // returns 0 for base class, 1 for RegSal, 2 for AggSal, 3 for EColi
+	void setFoodEaten(int value);
+	void increaseFood();
+	void setMovementPlan(int value);
+	void incOrDecmvmt(int value);
+
+	int getFoodEaten() const;
+	int getMovementPlan() const;
+	virtual void takeDmg(int value); 
+
+
+private:
+	int movementPlan;
+	int foodEaten;
+	
+};
+
+class RegularSalmonella :public Bacterium {
+public:
+	RegularSalmonella(StudentWorld* here, int hp, int movePlan, int x, int y);
+	~RegularSalmonella();
+	virtual int typeBact() const;
+	virtual void doSomething();
+};
+
+class AggressiveSalmonella :public Bacterium {
+public:
+	AggressiveSalmonella(StudentWorld* here, int hp, int movePlan, int x, int y);
+	~AggressiveSalmonella();
+	virtual int typeBact() const;
+	virtual void doSomething(); // dont forget
+};
+
+class EColi : public Bacterium {
+public:
+	EColi(StudentWorld* here, int hp, int movePlan, int x, int y);
+	~EColi();
+	virtual int typeBact() const;
+	virtual void doSomething();
+};
+
+
+///////////////////////////Other Questions/////////////////////////
+2. I was not able to correctly add in the functionality of ending a round after all the bacteria has been killed.
+I could not find the root of the problem in time even through many hours of debugging.
+I also was not able to correctly implement the Aggressive Salmonella's doSomething() method, particularly the part where it
+goes after Socrates when he is within a 72 pixel radius.
+
+3. As this was my first large project in CS, I probably made too many helper functions that may have been unnecessary to doing
+the project. 
+
+4.Class Testing:
+Socrates-
+Honestly I just spawned him in. The only real thing i checked for was when i put a break point on the line where I pushed him
+into the vector so see if I pushed back correctly. I got the direction on the first try. 
+
+Dirt-
+Same thing with Socrates, i just spawned them in. I wanted to make sure the the x and y values for each were randomized
+each time and that there appeared as the correct image.
+
+Flame/Spray-
+I tested these both the same way. First i defined the class, and then I spawned them in based on what Socrates's 
+doSomething specfifed in the spec. For the flame, it was a bit tricky to get the flames in the right spots, but 
+with some trig it was done. Spray was relatively easy after flame was done cause I did the same thing, but just once.
+
+All Goodies/Food-
+I just defined them and pushed back an instance of each with random coordinates. This was very helpful for testing 
+the Object overlap function to the fullest. I made sure that each goodie had an effect on Socrates whenever he 
+overlapped with them. I also made sure that each object had a random lifetime through hte debuggger.
+
+All Bacteria-
+I was not able to correctly implement the 2 Salmonella. E.Coli was done correctly. Testing these had to do with spawning 
+them in and watching their behavior as they are essentially AI. The math was off somewhere inside their doSomething 
+methods that I was not able to find. I believe that the Regular variant is very close to what is expected, but the 
+Aggressive one is still partially broken.
+
+
+

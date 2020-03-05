@@ -1,0 +1,190 @@
+NAME: Bryan Pham
+UID: 105-105-100
+
+Description:
+For the Linked List Map, I utilized a Node struct inside the Map class's private memeber variables that contained 
+2 pointers to Node objects (one pointing to the next node, one pointing to the previous node),a key variable, 
+and a value variable. Each node represents one element in the within the linked list. Additionally, I also had a 
+pointer to a Node object called head that points to the first element/node in the linked list, and I also had a 
+size variable to keep track of the size of the linked list. The list is not cirrcular because the last element/node
+points to nullptr.
+
+Pseudocodes:
+bool Map::erase(const KeyType& key); // this function checks if the key passed in by the user exists in the list. If it does, it removes it, returns true, else false
+{
+	first, check if the key exists within the list (using the contains fucntion).
+		if it doesnt, immediate return false 
+	if the key is in the list (if contains returns true) then:
+		create a temporary node variable (current/curr) equal to where the head pointer is pointing to for interation
+			if the head/first node's key is the one you're looking for
+				make head point to the node after head
+				delete the first node
+				reduce the size of the list by 1
+				return true
+			otherwise, while not the last node
+				if the current node's key is the one youre looking for
+					change the next node's previous to point to the one before the current node
+					change the previous node's next to point to the one after the current node
+					delete the current node
+					reduce the size of the list by 1
+					return true
+				otherwise iterate to the next node
+		once the loop breaks, you are on the last node. Since contains verified that the key is in the list, you know the last node is the key
+			change the previous node's next to point to nullptr
+			then delete the current node
+			reduce the size of the list by 1
+			return true
+}
+
+
+void reassign(const Map& m, Map& result)
+{
+	Make result empty
+	if m is size 0 or 1
+		set result = m
+	otherwise
+	create 2 temp key variables and 2 temp value variables (one pair for the head key/value, one pair for the tail key/value)
+	use the accessor function to retrieve the key and values of the first and last node
+		iterate through the list up til the node right before the last one
+			create 2 temp key variables and 2 temp value variables
+			access the key and value of the current node and the next node
+			insert into result the current nodes key with the next nodes value
+	finally, insert into result the last node's key with the first node's value
+}
+
+bool combine(const Map& m1, const Map& m2, Map& result)
+{
+Since every key in m1 is already a list of unique keys, insert all the values of m1 into result
+	interate through m2
+		create a temporary key an value variable
+		if the key at the current index does not exist in result, insert it into result
+		if the key does exist in result, check the value 
+			if the value is not the same
+				return false
+	return true afterwards
+}
+
+bool Map::insert(const KeyType& key, const ValueType& value)
+{
+dynamically create a new Node object
+if list is empty
+	assign the head pointer to point at the new Node,
+	Increment the size
+	return true
+otherwise, create a temporary ponter-to-Node variable for iteration and set it equal to the head pointer
+	check if the key exists already
+		if it does return false
+	else iterate
+	if not in the list, add the new node to the end of the list by changing the current's next pointer to it
+	then point the new Node's prev to curr
+	increment size of the list
+	return true
+}
+
+bool Map::get(const KeyType& key, ValueType& value) const
+{
+check if the key exists in the list first, if no return false
+otherwise, iterate
+	if the key at the current node it the one you're looking for
+		the the value PARAMETER equal to the value of that node
+		return true
+}
+
+bool Map::get(int i, KeyType& key, ValueType& value) const
+{
+check if i is a valid index of the list
+	if not return false
+otherwise iterate
+	Once you get the index, set the values of the PARAMETERS equal to the key and value at that index
+	return true
+}
+
+bool Map::update(const KeyType& key, const ValueType& value)
+{
+if the list is empty, return false
+otherwise, iterate
+	if the current key is not the one you're looking for
+		move to the next node
+	otherwise change the value of that node to the one passed in by the user
+	return true
+otherwise return false
+}
+
+Map& Map::operator=(const Map& equals)
+{
+iterate through the Map object on the left of the equal sign
+	delete everything in it
+iterate through equals (Mpa object on the right side)
+	create a new Node of the left-side list with the key and value of the right-side list 
+	do this for every node, including setting the pointers to point in the same order as the right-side node
+return *this
+}
+
+
+
+Test Cases:
+(#1) This test case is to test the member functions of the Map class and also the copy constructor, and the assignment operator
+
+#include "Map.h"
+#include <iostream>
+#include <cassert>
+using namespace std;
+
+void test()
+{
+    Map m;
+    assert(m.insert("John", 15));
+    assert(m.insert("Alice", 76));
+    assert(m.insert("Kent", 145));
+    assert(m.erase("Alice"));
+    assert(m.size() == 2);
+    KeyType k;
+    ValueType v;
+    assert(m.get(1, k, v) && k == "Kent" && v == 145);
+    Map m2(m);
+    assert(m2.size() == 2);
+    assert(m2.update("John", 56));
+    assert(m2.insertOrUpdate("Wallace", 78));
+    Map m3;
+    assert(m3.insert("Phi", 45));
+    m = m3;
+    assert(m.size() == 1);
+
+}
+
+int main()
+{
+    test();
+    cout << "Passed all tests" << endl;
+}
+
+(#2) This test case is to test the non-member functions
+#include "Map.h"
+#include <iostream>
+#include <cassert>
+using namespace std;
+
+void test()
+{
+    Map m;
+    assert(m.insert("John", 15));
+    assert(m.insert("Alice", 76));
+    assert(m.insert("Kent", 145));
+    Map m2;
+    assert(m2.insert("Ferdinand", 99));
+    assert(m2.insert("Peter", 74));
+    Map m3;
+    assert(combine(m, m2, m3));
+    
+    reassign(m, m2);
+    KeyType k;
+    ValueType v;
+    assert(m2.get(0, k, v) && k == "John" && v == 76);
+    
+}
+
+int main()
+{
+    test();
+    cout << "Passed all tests" << endl;
+}
