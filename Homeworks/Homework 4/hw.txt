@@ -1,0 +1,10 @@
+Bryan Pham
+March 3, 2020
+Prof. Smallberg and Nachenberg
+HW#4
+
+#2)
+For primitive types such as int and double, the comparison operators has been overloaded to compare the data types
+and their values. However, the Coord class does not define an overload for any of the comparison operators, and inside
+the insert function's for loop, it compares the current "key" value which is a Coord object, which can't be compared, 
+therefor resulting in a compiler error.
